@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>SNAC 40 Days Habit Challenge</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --p:  #167297;
+      --pl: #1e90b8;
+      --pd: #0f5c7a;
+      --pg: rgba(22,114,151,0.28);
+      --bg: #0b1420;
+      --card: rgba(255,255,255,0.04);
+      --cb:  rgba(22,114,151,0.22);
+      --t:   #ddeef5;
+      --tm:  #5a8599;
+      --td:  #2c4a5c;
+      --sp:  cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    html, body { height: 100%; }
+
+    body {
+      background: var(--bg);
+      background-image:
+        radial-gradient(ellipse 80% 55% at 15% 8%,  rgba(22,114,151,0.18) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 45% at 88% 92%, rgba(22,114,151,0.13) 0%, transparent 60%);
+      color: var(--t);
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 430px;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ── HEADER ── */
+    .hdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 52px 24px 10px;
+      flex-shrink: 0;
+    }
+    .hdr-brand { display: flex; flex-direction: column; gap: 1px; }
+    .hdr-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--p); }
+    .hdr-title   { font-size: 24px; font-weight: 800; letter-spacing: -0.6px; }
+    .hdr-actions { display: flex; gap: 10px; }
+
+    .hdr-btn {
+      width: 42px; height: 42px;
+      border-radius: 13px;
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.08);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--tm);
+      transition: all 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .hdr-btn:hover, .hdr-btn:active { background: var(--pg); color: var(--pl); border-color: var(--p); }
+
+    /* ── PRE-CHALLENGE CHIP ── */
+    .pre-chip {
+      margin: 0 24px 6px;
+      padding: 9px 14px;
+      background: rgba(22,114,151,0.1);
+      border: 1px solid rgba(22,114,151,0.25);
+      border-radius: 12px;
+      font-size: 12px; font-weight: 600;
+      color: var(--pl);
+      text-align: center;
+      flex-shrink: 0;
+      display: none;
+    }
+
+    /* ── PROGRESS BAR ── */
+    .prog { padding: 6px 24px 14px; flex-shrink: 0; }
+    .prog-row { display: flex; justify-content: space-between; margin-bottom: 7px; }
+    .prog-label { font-size: 12px; font-weight: 500; color: var(--tm); }
+    .prog-pct   { font-size: 12px; font-weight: 700; color: var(--p); }
+    .prog-track { height: 3px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; }
+    .prog-fill  {
+      height: 100%; background: linear-gradient(90deg, var(--pd), var(--pl));
+      border-radius: 2px; transition: width 0.7s ease; box-shadow: 0 0 8px var(--pg);
+    }
+
+    /* ── CARD AREA ── */
+    .card-wrap {
+      flex: 1; padding: 0 20px; min-height: 0; overflow: hidden;
+    }
+    .day-card {
+      height: 100%; background: var(--card); border: 1px solid var(--cb);
+      border-radius: 24px; padding: 22px 20px 18px;
+      display: flex; flex-direction: column;
+      backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    }
+    .day-hdr {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      margin-bottom: 20px; flex-shrink: 0;
+    }
+    .day-name { font-size: 36px; font-weight: 800; letter-spacing: -1.5px; line-height: 1; margin-bottom: 6px; }
+    .day-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .day-date { font-size: 13px; color: var(--tm); }
+    .today-pill {
+      background: var(--p); color: #fff;
+      font-size: 9px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;
+      padding: 3px 9px; border-radius: 100px;
+    }
+
+    /* ── RING ── */
+    .ring-wrap { position: relative; width: 60px; height: 60px; flex-shrink: 0; }
+    .ring-svg  { transform: rotate(-90deg); width: 60px; height: 60px; }
+    .ring-bg   { fill: none; stroke: rgba(255,255,255,0.07); stroke-width: 3.5; }
+    .ring-prog { fill: none; stroke-width: 3.5; stroke-linecap: round; transition: stroke-dashoffset 0.5s ease, stroke 0.3s ease; }
+    .ring-label { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
+
+    /* ── HABITS ── */
+    .habits {
+      flex: 1; display: flex; flex-direction: column; gap: 9px;
+      min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    }
+    .habits::-webkit-scrollbar { display: none; }
+    .habit {
+      display: flex; align-items: center; gap: 13px;
+      padding: 13px 15px; background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.065); border-radius: 14px;
+      cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent;
+      transition: background 0.22s ease, border-color 0.22s ease; flex-shrink: 0;
+    }
+    .habit:active { transform: scale(0.97); }
+    .habit.checked { background: rgba(22,114,151,0.1); border-color: rgba(22,114,151,0.28); }
+
+    .hcb {
+      width: 26px; height: 26px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.18);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      transition: background 0.3s var(--sp), border-color 0.25s ease, transform 0.3s var(--sp), box-shadow 0.3s ease;
+    }
+    .habit.checked .hcb { background: var(--p); border-color: var(--p); transform: scale(1.1); box-shadow: 0 0 14px rgba(22,114,151,0.55); }
+    .hcb-svg { width: 13px; height: 13px; overflow: visible; }
+    .hcb-path {
+      fill: none; stroke: #fff; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;
+      stroke-dasharray: 17; stroke-dashoffset: 17; transition: stroke-dashoffset 0.28s ease 0.07s;
+    }
+    .habit.checked .hcb-path { stroke-dashoffset: 0; }
+
+    .h-icon { font-size: 20px; flex-shrink: 0; width: 24px; text-align: center; transition: transform 0.3s var(--sp), filter 0.3s ease; }
+    .habit.checked .h-icon { transform: scale(0.88); filter: grayscale(0.4); }
+
+    .h-label {
+      flex: 1; font-size: 15px; font-weight: 500; color: var(--t);
+      position: relative; display: inline-block; transition: color 0.3s ease;
+    }
+    .h-label::after {
+      content: ''; position: absolute; left: 0; top: 50%; height: 1.5px; width: 0%;
+      background: var(--tm); border-radius: 1px; transform: translateY(-50%);
+      transition: width 0.38s cubic-bezier(0.4, 0, 0.2, 1) 0.04s;
+    }
+    .habit.checked .h-label        { color: var(--td); }
+    .habit.checked .h-label::after { width: 100%; }
+
+    @keyframes hbounce {
+      0%   { transform: scale(1); }
+      35%  { transform: scale(1.07); }
+      65%  { transform: scale(0.97); }
+      100% { transform: scale(1); }
+    }
+    .habit.bouncing { animation: hbounce 0.38s var(--sp); }
+
+    .done-banner {
+      margin-top: 6px; padding: 11px 16px;
+      background: linear-gradient(135deg, rgba(22,114,151,0.2), rgba(22,114,151,0.06));
+      border: 1px solid rgba(22,114,151,0.38); border-radius: 13px;
+      text-align: center; font-size: 13px; font-weight: 600; color: #5bc8e8;
+      opacity: 0; transform: scale(0.88) translateY(6px);
+      transition: opacity 0.35s ease, transform 0.35s var(--sp);
+      pointer-events: none; flex-shrink: 0;
+    }
+    .done-banner.show { opacity: 1; transform: scale(1) translateY(0); pointer-events: auto; }
+
+    /* ── NAV ── */
+    .nav {
+      padding: 14px 24px 38px;
+      display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+    }
+    .nav-btn {
+      width: 50px; height: 50px; border-radius: 15px;
+      background: var(--card); border: 1px solid rgba(255,255,255,0.08);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--tm); transition: all 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .nav-btn:hover:not(:disabled) { background: var(--pg); color: var(--pl); border-color: var(--p); }
+    .nav-btn:active:not(:disabled) { transform: scale(0.92); }
+    .nav-btn:disabled { opacity: 0.22; cursor: not-allowed; }
+
+    .dots { display: flex; align-items: center; gap: 5px; }
+    .dot  { height: 7px; width: 7px; border-radius: 3.5px; background: rgba(255,255,255,0.16); transition: all 0.3s var(--sp); }
+    .dot.done { background: rgba(22,114,151,0.55); }
+    .dot.cur  { width: 24px; background: var(--p); box-shadow: 0 0 8px rgba(22,114,151,0.65); }
+
+    /* ── OVERLAYS (shared) ── */
+    .overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.62);
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      display: flex; align-items: flex-end; justify-content: center;
+      z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.28s ease;
+    }
+    .overlay.open { opacity: 1; pointer-events: all; }
+
+    .sheet {
+      width: 100%; max-width: 430px; background: #15223a;
+      border-radius: 28px 28px 0 0; padding: 10px 24px 56px;
+      border: 1px solid rgba(22,114,151,0.22); border-bottom: none;
+      transform: translateY(100%);
+      transition: transform 0.4s cubic-bezier(0.34, 1.18, 0.64, 1);
+    }
+    .overlay.open .sheet { transform: translateY(0); }
+    .sheet-handle { width: 36px; height: 4px; background: rgba(255,255,255,0.12); border-radius: 2px; margin: 10px auto 20px; }
+
+    /* Settings sheet */
+    .sheet-title { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+    .sheet-sub   { font-size: 13px; color: var(--tm); line-height: 1.55; margin-bottom: 26px; }
+    .field-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--tm); margin-bottom: 10px; }
+    .field-input {
+      width: 100%; padding: 15px 16px;
+      background: rgba(255,255,255,0.05); border: 1.5px solid rgba(255,255,255,0.1);
+      border-radius: 14px; color: var(--t); font-size: 16px; font-family: inherit;
+      outline: none; transition: border-color 0.2s ease, box-shadow 0.2s ease; margin-bottom: 22px;
+    }
+    .field-input::placeholder { color: var(--td); }
+    .field-input:focus { border-color: var(--p); box-shadow: 0 0 0 3px rgba(22,114,151,0.22); }
+    .save-btn {
+      width: 100%; padding: 17px; background: var(--p); color: #fff; border: none;
+      border-radius: 16px; font-size: 16px; font-weight: 700; font-family: inherit;
+      cursor: pointer; letter-spacing: 0.3px; transition: all 0.2s ease;
+    }
+    .save-btn:hover  { background: var(--pl); box-shadow: 0 8px 24px rgba(22,114,151,0.4); }
+    .save-btn:active { transform: scale(0.97); }
+
+    /* Overview sheet */
+    .ov-sheet {
+      max-height: 88dvh;
+      display: flex; flex-direction: column;
+      padding: 10px 0 0;
+    }
+    .ov-handle { width: 36px; height: 4px; background: rgba(255,255,255,0.12); border-radius: 2px; margin: 10px auto 16px; }
+
+    /* Tabs */
+    .tab-row { display: flex; gap: 6px; padding: 0 24px 18px; flex-shrink: 0; }
+    .ovtab {
+      flex: 1; padding: 10px 8px; border-radius: 12px;
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+      color: var(--tm); font-size: 13px; font-weight: 600; font-family: inherit;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .ovtab.active { background: var(--p); border-color: var(--p); color: #fff; box-shadow: 0 4px 14px rgba(22,114,151,0.38); }
+
+    /* Panes */
+    .pane { display: none; overflow-y: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; flex: 1; padding: 0 24px 40px; }
+    .pane::-webkit-scrollbar { display: none; }
+    .pane.active { display: block; }
+
+    /* ── CALENDAR PANE ── */
+    .cal-month-nav {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+    }
+    .cal-month-title { font-size: 16px; font-weight: 700; }
+    .cal-mbtn {
+      width: 34px; height: 34px; border-radius: 10px;
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+      color: var(--t); display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.2s ease;
+    }
+    .cal-mbtn:hover:not(:disabled) { background: var(--pg); border-color: var(--p); }
+    .cal-mbtn:disabled { opacity: 0.25; cursor: not-allowed; }
+
+    .cal-day-hdr {
+      display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 6px;
+    }
+    .cal-dh { text-align: center; font-size: 10px; font-weight: 700; letter-spacing: 1px; color: var(--tm); padding: 4px 0; }
+
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+
+    .cal-cell {
+      aspect-ratio: 1; border-radius: 9px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+    }
+    .cal-cell.cal-empty { background: transparent; }
+    .cal-cell:not(.cc):not(.cal-empty) { background: rgba(255,255,255,0.02); }
+
+    .cc { /* challenge cell */
+      background: rgba(22,114,151,0.1); border: 1px solid rgba(22,114,151,0.18);
+      cursor: pointer; transition: background 0.15s, border-color 0.15s;
+    }
+    .cc:hover  { background: rgba(22,114,151,0.24); border-color: rgba(22,114,151,0.35); }
+    .cc:active { transform: scale(0.93); }
+    .ct { outline: 2px solid rgba(22,114,151,0.5); outline-offset: 1px; }
+    .cv { border: 2px solid var(--p) !important; box-shadow: 0 0 8px var(--pg); }
+    .ca { background: rgba(61,214,140,0.15) !important; border-color: rgba(61,214,140,0.3) !important; }
+
+    .cdn { font-size: 12px; font-weight: 600; color: var(--t); line-height: 1; }
+    .cal-cell:not(.cc) .cdn { color: var(--td); }
+    .ct .cdn { color: var(--pl); font-weight: 800; }
+
+    .cbar { display: flex; gap: 2px; }
+    .csg  { width: 5px; height: 3px; border-radius: 1.5px; background: rgba(255,255,255,0.1); }
+    .csg.cs { background: var(--p); }
+    .ca .csg.cs { background: #3dd68c; }
+
+    /* ── STATS PANE ── */
+    .stats-section-lbl {
+      font-size: 10px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase;
+      color: var(--tm); margin-bottom: 14px;
+    }
+
+    .wrow {
+      background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 14px; padding: 14px; margin-bottom: 8px;
+    }
+    .wrow-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 11px; }
+    .wn  { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+    .wd  { font-size: 11px; color: var(--tm); }
+    .wbadge { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 100px; letter-spacing: 0.5px; white-space: nowrap; }
+    .sup { background: rgba(255,255,255,0.07); color: var(--tm); }
+    .sip { background: rgba(22,114,151,0.2); color: var(--pl); }
+    .sco { background: rgba(61,214,140,0.15); color: #3dd68c; }
+
+    .wbar-track { height: 5px; background: rgba(255,255,255,0.07); border-radius: 3px; overflow: hidden; margin-bottom: 8px; }
+    .wbar-fill  { height: 100%; background: linear-gradient(90deg, var(--pd), var(--pl)); border-radius: 3px; transition: width 0.7s ease; }
+    .wrow-foot  { display: flex; justify-content: space-between; font-size: 12px; color: var(--tm); }
+    .wpct { font-weight: 700; color: var(--t); }
+
+    .total-row {
+      background: rgba(22,114,151,0.1); border: 1px solid rgba(22,114,151,0.3);
+      border-radius: 18px; padding: 20px; margin-top: 18px;
+    }
+    .total-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .total-title { font-size: 16px; font-weight: 800; }
+    .total-score { font-size: 26px; font-weight: 900; color: var(--pl); letter-spacing: -1px; }
+
+    .total-bar-track { height: 8px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden; margin-bottom: 10px; }
+    .total-bar-fill  {
+      height: 100%; background: linear-gradient(90deg, var(--pd), var(--pl));
+      border-radius: 4px; transition: width 0.8s ease; box-shadow: 0 0 10px var(--pg);
+    }
+    .total-foot { font-size: 12px; color: var(--tm); text-align: center; }
+
+    /* ── CONFETTI ── */
+    .confetti-box { position: fixed; inset: 0; pointer-events: none; z-index: 300; overflow: hidden; }
+    @keyframes fall {
+      0%   { transform: translateY(-15px) rotate(0deg)   scale(1);   opacity: 1; }
+      80%  { opacity: 1; }
+      100% { transform: translateY(105vh) rotate(600deg) scale(0.5); opacity: 0; }
+    }
+    .cp { position: absolute; border-radius: 2px; animation: fall linear forwards; }
+
+    /* ── CARD SLIDE ── */
+    @keyframes slideIn {
+      from { opacity: 0; transform: var(--from-pos); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    .slide-in-right { animation: slideIn 0.24s ease forwards; --from-pos: translateX(50px); }
+    .slide-in-left  { animation: slideIn 0.24s ease forwards; --from-pos: translateX(-50px); }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+
+    <!-- Settings overlay -->
+    <div class="overlay" id="settingsOverlay">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <h2 class="sheet-title">Settings</h2>
+        <p class="sheet-sub">Give your 5th habit a name that matches your personal goals.</p>
+        <div class="field-label">Custom Habit Name</div>
+        <input class="field-input" id="cInput" type="text"
+          placeholder="e.g. Journaling, Meditation…" maxlength="32" autocomplete="off">
+        <button class="save-btn" id="saveBtn">Save Changes</button>
+      </div>
+    </div>
+
+    <!-- Overview overlay (calendar + stats) -->
+    <div class="overlay" id="ovOverlay">
+      <div class="sheet ov-sheet">
+        <div class="ov-handle"></div>
+
+        <div class="tab-row">
+          <button class="ovtab active" data-tab="cal">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            Calendar
+          </button>
+          <button class="ovtab" data-tab="stats">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+              <line x1="6" y1="20" x2="6" y2="14"/>
+            </svg>
+            Weekly Stats
+          </button>
+        </div>
+
+        <!-- Calendar pane -->
+        <div class="pane active" id="pane-cal">
+          <div class="cal-month-nav">
+            <button class="cal-mbtn" id="calPrev">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"/>
+              </svg>
+            </button>
+            <span class="cal-month-title" id="calMonthTitle">May 2026</span>
+            <button class="cal-mbtn" id="calNext">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </button>
+          </div>
+          <div class="cal-day-hdr">
+            <div class="cal-dh">M</div><div class="cal-dh">T</div><div class="cal-dh">W</div>
+            <div class="cal-dh">T</div><div class="cal-dh">F</div><div class="cal-dh">S</div>
+            <div class="cal-dh">S</div>
+          </div>
+          <div class="cal-grid" id="calGrid"></div>
+        </div>
+
+        <!-- Stats pane -->
+        <div class="pane" id="pane-stats">
+          <div class="stats-section-lbl">Weekly Scores</div>
+          <div id="weekRows"></div>
+          <div id="totalRow"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confetti -->
+    <div class="confetti-box" id="confettiBox"></div>
+
+    <!-- Header -->
+    <header class="hdr">
+      <div class="hdr-brand">
+        <span class="hdr-eyebrow">SNAC </span>
+        <span class="hdr-title">40 Days Habit</span>
+      </div>
+      <div class="hdr-actions">
+        <button class="hdr-btn" id="calBtn" aria-label="Calendar & Stats">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+        </button>
+        <button class="hdr-btn" id="settingsBtn" aria-label="Settings">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06
+              a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09
+              A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83
+              l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09
+              A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83
+              l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09
+              a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83
+              l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09
+              a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Pre-challenge countdown chip -->
+    <div class="pre-chip" id="preChip"></div>
+
+    <!-- Progress bar -->
+    <div class="prog">
+      <div class="prog-row">
+        <span class="prog-label" id="progLabel">Day 1 of 40</span>
+        <span class="prog-pct"   id="progPct">0%</span>
+      </div>
+      <div class="prog-track">
+        <div class="prog-fill" id="progFill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <!-- Day card -->
+    <div id="main" style="flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;"></div>
+
+    <!-- Navigation -->
+    <nav class="nav" id="nav">
+      <button class="nav-btn" id="prevBtn" aria-label="Previous day">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </button>
+      <div class="dots" id="dots"></div>
+      <button class="nav-btn" id="nextBtn" aria-label="Next day">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
+    </nav>
+  </div>
+
+  <script>
+    // ── Constants ──────────────────────────────────────────────────────────
+    const START  = new Date(2026, 4, 7); // May 7 2026
+    const TOTAL  = 40;
+    const CIRC   = 2 * Math.PI * 24;
+    const WDAYS  = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const MONTH_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+    const HABITS = [
+      { id:'bible',    label:'Read Bible', icon:'📖' },
+      { id:'pray',     label:'Pray',       icon:'🙏' },
+      { id:'exercise', label:'Exercise',   icon:'💪' },
+      { id:'reading',  label:'Reading',    icon:'📚' },
+      { id:'custom',   label:'',           icon:'⭐' },
+    ];
+
+    // Week groups: 7-day chunks from start
+    const WEEKS = [
+      { n:1, s:0,  e:6,  dates:'May 7–13' },
+      { n:2, s:7,  e:13, dates:'May 14–20' },
+      { n:3, s:14, e:20, dates:'May 21–27' },
+      { n:4, s:21, e:27, dates:'May 28–Jun 3' },
+      { n:5, s:28, e:34, dates:'Jun 4–10' },
+      { n:6, s:35, e:39, dates:'Jun 11–15' },
+    ];
+
+    // ── State ──────────────────────────────────────────────────────────────
+    let cur        = 0;
+    let data       = {};
+    let customName = 'My Custom Habit';
+    let busy       = false;
+    let calMonth   = 4; // 4=May, 5=Jun
+
+    // ── Storage ────────────────────────────────────────────────────────────
+    function load() {
+      try {
+        const d = localStorage.getItem('40d_data');
+        if (d) data = JSON.parse(d);
+        const n = localStorage.getItem('40d_custom');
+        if (n) customName = n;
+      } catch (_) {}
+      HABITS[4].label = customName;
+    }
+
+    function persist() {
+      localStorage.setItem('40d_data', JSON.stringify(data));
+    }
+
+    // ── Helpers ────────────────────────────────────────────────────────────
+    function dateOf(idx) {
+      const d = new Date(START);
+      d.setDate(d.getDate() + idx);
+      return d;
+    }
+
+    function todayIdx() {
+      const t = new Date();
+      const today = new Date(t.getFullYear(), t.getMonth(), t.getDate());
+      return Math.round((today - new Date(2026, 4, 7)) / 86400000);
+    }
+
+    // Returns challenge day index (0-39) for a date, or -1 if not a challenge day
+    function cidxOfDate(date) {
+      const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const diff = Math.round((d - new Date(2026, 4, 7)) / 86400000);
+      return diff >= 0 && diff < TOTAL ? diff : -1;
+    }
+
+    function dayData(idx)   { return data[idx] || {}; }
+    function doneCount(idx) { const d = dayData(idx); return HABITS.filter(h => d[h.id]).length; }
+    function habitLabel(h)  { return h.id === 'custom' ? customName : h.label; }
+
+    // ── Build day card HTML ─────────────────────────────────────────────────
+    function buildCard(idx, animClass) {
+      const date    = dateOf(idx);
+      const ti      = todayIdx();
+      const isToday = idx === ti;
+      const dd      = dayData(idx);
+      const done    = doneCount(idx);
+      const allDone = done === HABITS.length;
+      const offset  = CIRC - (done / HABITS.length) * CIRC;
+      const rStroke = allDone ? '#3dd68c' : '#167297';
+      const rGlow   = allDone ? 'drop-shadow(0 0 5px rgba(61,214,140,0.55))' : 'drop-shadow(0 0 5px rgba(22,114,151,0.65))';
+
+      const habitsHTML = HABITS.map(h => {
+        const chk = !!dd[h.id];
+        return `<div class="habit${chk ? ' checked' : ''}" data-id="${h.id}" data-day="${idx}"
+            role="checkbox" aria-checked="${chk}" tabindex="0">
+          <div class="hcb"><svg class="hcb-svg" viewBox="0 0 13 13">
+            <path class="hcb-path" d="M1.5 6.5 L5 10 L11.5 3"/>
+          </svg></div>
+          <span class="h-icon">${h.icon}</span>
+          <span class="h-label">${habitLabel(h)}</span>
+        </div>`;
+      }).join('');
+
+      return `<div class="card-wrap${animClass ? ' '+animClass : ''}" id="cw">
+        <div class="day-card">
+          <div class="day-hdr">
+            <div>
+              <div class="day-name">${WDAYS[date.getDay()]}</div>
+              <div class="day-meta">
+                <span class="day-date">${MONTHS[date.getMonth()]} ${date.getDate()} · Day ${idx+1}</span>
+                ${isToday ? '<span class="today-pill">Today</span>' : ''}
+              </div>
+            </div>
+            <div class="ring-wrap">
+              <svg class="ring-svg" viewBox="0 0 60 60">
+                <circle class="ring-bg" cx="30" cy="30" r="24"/>
+                <circle class="ring-prog" cx="30" cy="30" r="24"
+                  stroke="${rStroke}"
+                  style="stroke-dasharray:${CIRC.toFixed(2)};stroke-dashoffset:${offset.toFixed(2)};filter:${rGlow}"/>
+              </svg>
+              <div class="ring-label" id="rlabel">${done}/5</div>
+            </div>
+          </div>
+          <div class="habits" id="hlist">
+            ${habitsHTML}
+            <div class="done-banner${allDone ? ' show' : ''}" id="banner">
+              ✨ All habits done — amazing work!
+            </div>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    // ── Render day ─────────────────────────────────────────────────────────
+    function renderDay(idx, dir) {
+      const main = document.getElementById('main');
+
+      if (dir && !busy) {
+        busy = true;
+        const cw = document.getElementById('cw');
+        if (cw) {
+          const outX = dir === 'next' ? '-50px' : '50px';
+          cw.style.transition = 'opacity 0.16s ease, transform 0.16s ease';
+          cw.style.opacity   = '0';
+          cw.style.transform = `translateX(${outX})`;
+        }
+        setTimeout(() => {
+          main.innerHTML = buildCard(idx, dir === 'next' ? 'slide-in-right' : 'slide-in-left');
+          attachHabitEvents();
+          syncProgress(); syncDots(); syncNavBtns();
+          setTimeout(() => { busy = false; }, 260);
+        }, 170);
+      } else {
+        main.innerHTML = buildCard(idx, null);
+        attachHabitEvents();
+        syncProgress(); syncDots(); syncNavBtns();
+      }
+    }
+
+    // ── Habit events ───────────────────────────────────────────────────────
+    function attachHabitEvents() {
+      document.querySelectorAll('.habit').forEach(el => {
+        el.addEventListener('click', onHabit);
+        el.addEventListener('keydown', e => {
+          if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); onHabit.call(el); }
+        });
+      });
+    }
+
+    function onHabit() {
+      const id  = this.dataset.id;
+      const idx = +this.dataset.day;
+
+      if (!data[idx]) data[idx] = {};
+      data[idx][id] = !data[idx][id];
+      persist();
+
+      const checked = data[idx][id];
+      this.classList.toggle('checked', checked);
+      this.setAttribute('aria-checked', String(checked));
+
+      this.classList.remove('bouncing');
+      void this.offsetWidth;
+      this.classList.add('bouncing');
+      this.addEventListener('animationend', () => this.classList.remove('bouncing'), { once: true });
+
+      updateRing(idx);
+      syncDots();
+
+      const done = doneCount(idx);
+      const banner = document.getElementById('banner');
+      if (banner) banner.classList.toggle('show', done === HABITS.length);
+      if (done === HABITS.length) confetti();
+    }
+
+    // ── Ring ───────────────────────────────────────────────────────────────
+    function updateRing(idx) {
+      const done    = doneCount(idx);
+      const allDone = done === HABITS.length;
+      const offset  = CIRC - (done / HABITS.length) * CIRC;
+      const rp = document.querySelector('.ring-prog');
+      const rl = document.getElementById('rlabel');
+      if (rp) {
+        rp.style.strokeDashoffset = offset.toFixed(2);
+        rp.setAttribute('stroke', allDone ? '#3dd68c' : '#167297');
+        rp.style.filter = allDone ? 'drop-shadow(0 0 5px rgba(61,214,140,0.55))' : 'drop-shadow(0 0 5px rgba(22,114,151,0.65))';
+      }
+      if (rl) rl.textContent = `${done}/5`;
+    }
+
+    // ── Progress bar ───────────────────────────────────────────────────────
+    function syncProgress() {
+      const ti  = todayIdx();
+      const ref = Math.min(Math.max(ti, 0), TOTAL - 1);
+      const pct = ti < 0 ? 0 : Math.round(((ref + 1) / TOTAL) * 100);
+      document.getElementById('progLabel').textContent = `Day ${cur + 1} of ${TOTAL}`;
+      document.getElementById('progPct').textContent   = `${pct}%`;
+      document.getElementById('progFill').style.width  = pct + '%';
+    }
+
+    // ── Dots ───────────────────────────────────────────────────────────────
+    function syncDots() {
+      const el = document.getElementById('dots');
+      if (!el) return;
+      const max = 7;
+      let start = Math.max(0, cur - 3);
+      let end   = Math.min(TOTAL - 1, start + max - 1);
+      start     = Math.max(0, end - max + 1);
+      el.innerHTML = Array.from({ length: end - start + 1 }, (_, i) => {
+        const idx = start + i;
+        const cls = idx === cur ? 'cur' : doneCount(idx) === HABITS.length ? 'done' : '';
+        return `<div class="dot${cls ? ' '+cls : ''}"></div>`;
+      }).join('');
+    }
+
+    // ── Nav buttons ────────────────────────────────────────────────────────
+    function syncNavBtns() {
+      document.getElementById('prevBtn').disabled = cur === 0;
+      document.getElementById('nextBtn').disabled = cur === TOTAL - 1;
+    }
+
+    function goTo(idx, dir) {
+      if (idx < 0 || idx >= TOTAL || busy) return;
+      cur = idx;
+      renderDay(idx, dir);
+    }
+
+    // ── Confetti ───────────────────────────────────────────────────────────
+    function confetti() {
+      const box    = document.getElementById('confettiBox');
+      const colors = ['#167297','#1e90b8','#3dd68c','#f0a020','#e8476a','#a855f7','#f97316'];
+      for (let i = 0; i < 55; i++) {
+        const p = document.createElement('div');
+        const size = 5 + Math.random() * 8;
+        p.className = 'cp';
+        p.style.cssText = `left:${5+Math.random()*90}%;top:-12px;width:${size}px;height:${size}px;
+          background:${colors[Math.floor(Math.random()*colors.length)]};
+          border-radius:${Math.random()>0.45?'50%':'2px'};
+          animation-duration:${1.1+Math.random()*1.3}s;
+          animation-delay:${Math.random()*0.45}s;`;
+        box.appendChild(p);
+        p.addEventListener('animationend', () => p.remove());
+      }
+    }
+
+    // ── Calendar rendering ─────────────────────────────────────────────────
+    function renderCal() {
+      const year       = 2026;
+      const firstDay   = new Date(year, calMonth, 1);
+      const daysInMon  = new Date(year, calMonth + 1, 0).getDate();
+      const startDow   = (firstDay.getDay() + 6) % 7; // Mon=0 … Sun=6
+
+      const td = new Date();
+      const todayMid = new Date(td.getFullYear(), td.getMonth(), td.getDate());
+
+      document.getElementById('calMonthTitle').textContent = `${MONTH_FULL[calMonth]} 2026`;
+      document.getElementById('calPrev').disabled = calMonth <= 4;
+      document.getElementById('calNext').disabled = calMonth >= 5;
+
+      const cells = [];
+      for (let i = 0; i < startDow; i++)         cells.push(null);
+      for (let d = 1; d <= daysInMon; d++)        cells.push(new Date(year, calMonth, d));
+      while (cells.length % 7 !== 0)              cells.push(null);
+
+      const html = cells.map(date => {
+        if (!date) return '<div class="cal-cell cal-empty"></div>';
+
+        const ci         = cidxOfDate(date);
+        const isChallenge = ci >= 0;
+        const isToday    = date.getTime() === todayMid.getTime();
+        const isCur      = ci === cur;
+        const done       = isChallenge ? doneCount(ci) : 0;
+        const allDone    = isChallenge && done === HABITS.length;
+
+        let cls = 'cal-cell';
+        if (isChallenge) cls += ' cc';
+        if (isToday)     cls += ' ct';
+        if (isCur)       cls += ' cv';
+        if (allDone)     cls += ' ca';
+
+        const segs = isChallenge
+          ? HABITS.map((h, i) => {
+              const filled = (dayData(ci)[h.id]) ? ' cs' : '';
+              return `<div class="csg${filled}"></div>`;
+            }).join('')
+          : '';
+
+        return `<div class="${cls}"${isChallenge ? ` data-ci="${ci}"` : ''}>
+          <span class="cdn">${date.getDate()}</span>
+          ${isChallenge ? `<div class="cbar">${segs}</div>` : ''}
+        </div>`;
+      }).join('');
+
+      document.getElementById('calGrid').innerHTML = html;
+
+      document.querySelectorAll('.cal-cell.cc').forEach(el => {
+        el.addEventListener('click', () => {
+          const ci = +el.dataset.ci;
+          goTo(ci, ci > cur ? 'next' : 'prev');
+          closeOverview();
+        });
+      });
+    }
+
+    // ── Stats rendering ────────────────────────────────────────────────────
+    function renderStats() {
+      const ti = todayIdx();
+      let totalDone = 0;
+
+      const weeksHTML = WEEKS.map(w => {
+        const days = w.e - w.s + 1;
+        const max  = days * HABITS.length;
+        let done   = 0;
+        for (let i = w.s; i <= w.e; i++) done += doneCount(i);
+        totalDone += done;
+        const pct = max > 0 ? Math.round(done / max * 100) : 0;
+
+        let status, sCls;
+        if (ti < w.s)       { status = 'Upcoming';    sCls = 'sup'; }
+        else if (ti > w.e)  { status = 'Complete';    sCls = 'sco'; }
+        else                { status = 'In Progress'; sCls = 'sip'; }
+
+        return `<div class="wrow">
+          <div class="wrow-head">
+            <div>
+              <div class="wn">Week ${w.n}</div>
+              <div class="wd">${w.dates}</div>
+            </div>
+            <span class="wbadge ${sCls}">${status}</span>
+          </div>
+          <div class="wbar-track"><div class="wbar-fill" style="width:${pct}%"></div></div>
+          <div class="wrow-foot">
+            <span>${done}/${max} habits</span>
+            <span class="wpct">${pct}%</span>
+          </div>
+        </div>`;
+      }).join('');
+
+      const totalMax = TOTAL * HABITS.length;
+      const totalPct = Math.round(totalDone / totalMax * 100);
+
+      document.getElementById('weekRows').innerHTML  = weeksHTML;
+      document.getElementById('totalRow').innerHTML  = `
+        <div class="total-row">
+          <div class="total-head">
+            <span class="total-title">40-Day Total</span>
+            <span class="total-score">${totalDone}/${totalMax}</span>
+          </div>
+          <div class="total-bar-track"><div class="total-bar-fill" style="width:${totalPct}%"></div></div>
+          <div class="total-foot">${totalPct}% of all habits completed</div>
+        </div>`;
+    }
+
+    // ── Overview sheet ─────────────────────────────────────────────────────
+    const ovOverlay = document.getElementById('ovOverlay');
+
+    function openOverview(tab) {
+      calMonth = dateOf(cur).getMonth();
+      ovOverlay.classList.add('open');
+      switchTab(tab || 'cal');
+    }
+
+    function closeOverview() {
+      ovOverlay.classList.remove('open');
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll('.ovtab').forEach(t =>
+        t.classList.toggle('active', t.dataset.tab === tab));
+      document.querySelectorAll('.pane').forEach(p =>
+        p.classList.toggle('active', p.id === 'pane-' + tab));
+      if (tab === 'cal')   renderCal();
+      if (tab === 'stats') renderStats();
+    }
+
+    document.getElementById('calBtn').addEventListener('click', () => openOverview('cal'));
+    ovOverlay.addEventListener('click', e => { if (e.target === ovOverlay) closeOverview(); });
+
+    document.querySelectorAll('.ovtab').forEach(t =>
+      t.addEventListener('click', () => switchTab(t.dataset.tab)));
+
+    document.getElementById('calPrev').addEventListener('click', () => {
+      if (calMonth > 4) { calMonth--; renderCal(); }
+    });
+    document.getElementById('calNext').addEventListener('click', () => {
+      if (calMonth < 5) { calMonth++; renderCal(); }
+    });
+
+    // ── Settings ───────────────────────────────────────────────────────────
+    const settingsOverlay = document.getElementById('settingsOverlay');
+    const cInput = document.getElementById('cInput');
+
+    document.getElementById('settingsBtn').addEventListener('click', () => {
+      cInput.value = customName;
+      settingsOverlay.classList.add('open');
+      setTimeout(() => cInput.focus(), 420);
+    });
+    settingsOverlay.addEventListener('click', e => { if (e.target === settingsOverlay) settingsOverlay.classList.remove('open'); });
+    document.getElementById('saveBtn').addEventListener('click', () => {
+      const val = cInput.value.trim();
+      if (!val) { cInput.focus(); return; }
+      customName = val; HABITS[4].label = val;
+      localStorage.setItem('40d_custom', val);
+      settingsOverlay.classList.remove('open');
+      renderDay(cur, null);
+    });
+    cInput.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('saveBtn').click(); });
+
+    // ── Nav buttons ────────────────────────────────────────────────────────
+    document.getElementById('prevBtn').addEventListener('click', () => goTo(cur - 1, 'prev'));
+    document.getElementById('nextBtn').addEventListener('click', () => goTo(cur + 1, 'next'));
+
+    // ── Swipe ──────────────────────────────────────────────────────────────
+    let sx = 0, sy = 0;
+    document.getElementById('app').addEventListener('touchstart', e => {
+      sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+    }, { passive: true });
+    document.getElementById('app').addEventListener('touchend', e => {
+      const dx = e.changedTouches[0].clientX - sx;
+      const dy = e.changedTouches[0].clientY - sy;
+      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 48)
+        dx < 0 ? goTo(cur+1,'next') : goTo(cur-1,'prev');
+    }, { passive: true });
+
+    // ── Keyboard ───────────────────────────────────────────────────────────
+    document.addEventListener('keydown', e => {
+      if (e.target.tagName === 'INPUT') return;
+      if (e.key === 'ArrowRight') goTo(cur+1,'next');
+      if (e.key === 'ArrowLeft')  goTo(cur-1,'prev');
+    });
+
+    // ── Init ───────────────────────────────────────────────────────────────
+    load();
+    const ti = todayIdx();
+
+    if (ti < 0) {
+      // Pre-challenge: show Day 1 with countdown chip, keep nav visible
+      cur = 0;
+      const chip = document.getElementById('preChip');
+      const days = -ti;
+      chip.textContent = `🔥 Challenge starts May 7, 2026 · ${days} day${days===1?'':'s'} to go`;
+      chip.style.display = 'block';
+    } else {
+      cur = Math.min(Math.max(ti, 0), TOTAL - 1);
+    }
+
+    renderDay(cur, null);
+  </script>
+</body>
+</html>
