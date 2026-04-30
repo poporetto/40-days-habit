@@ -468,7 +468,7 @@
         <div class="welcome-flame">🔥</div>
         <div class="welcome-eyebrow">SNAC</div>
         <h1 class="welcome-title">40 Days Habit Challenge</h1>
-        <p class="welcome-sub">Build five life-changing habits over 40 days.<br>Starting <strong style="color:var(--t)">May 7, 2026</strong>.</p>
+        <p class="welcome-sub">Build five life-changing habits over 40 days.<br>Starting <strong style="color:var(--t)">Monday, May 4, 2026</strong>.</p>
         <div class="welcome-form">
           <div class="welcome-field">
             <label class="welcome-label">Your Name</label>
@@ -623,7 +623,7 @@
 
   <script>
     // ── Constants ──────────────────────────────────────────────────────────
-    const START  = new Date(2026, 4, 7); // May 7 2026
+    const START  = new Date(2026, 4, 4); // May 4 2026
     const TOTAL  = 40;
     const CIRC   = 2 * Math.PI * 24;
     const WDAYS  = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
@@ -640,12 +640,12 @@
 
     // Week groups: 7-day chunks from start
     const WEEKS = [
-      { n:1, s:0,  e:6,  dates:'May 7–13' },
-      { n:2, s:7,  e:13, dates:'May 14–20' },
-      { n:3, s:14, e:20, dates:'May 21–27' },
-      { n:4, s:21, e:27, dates:'May 28–Jun 3' },
-      { n:5, s:28, e:34, dates:'Jun 4–10' },
-      { n:6, s:35, e:39, dates:'Jun 11–15' },
+      { n:1, s:0,  e:6,  dates:'May 4–10' },
+      { n:2, s:7,  e:13, dates:'May 11–17' },
+      { n:3, s:14, e:20, dates:'May 18–24' },
+      { n:4, s:21, e:27, dates:'May 25–31' },
+      { n:5, s:28, e:34, dates:'Jun 1–7' },
+      { n:6, s:35, e:39, dates:'Jun 8–12' },
     ];
 
     // ── Greetings ──────────────────────────────────────────────────────────
@@ -724,13 +724,13 @@
     function todayIdx() {
       const t = new Date();
       const today = new Date(t.getFullYear(), t.getMonth(), t.getDate());
-      return Math.round((today - new Date(2026, 4, 7)) / 86400000);
+      return Math.round((today - new Date(2026, 4, 4)) / 86400000);
     }
 
     // Returns challenge day index (0-39) for a date, or -1 if not a challenge day
     function cidxOfDate(date) {
       const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-      const diff = Math.round((d - new Date(2026, 4, 7)) / 86400000);
+      const diff = Math.round((d - new Date(2026, 4, 4)) / 86400000);
       return diff >= 0 && diff < TOTAL ? diff : -1;
     }
 
@@ -1177,7 +1177,7 @@
       cur = 0;
       const chip = document.getElementById('preChip');
       const days = -ti;
-      chip.textContent = `🔥 Challenge starts May 7, 2026 · ${days} day${days===1?'':'s'} to go`;
+      chip.textContent = `🔥 Challenge starts May 4, 2026 · ${days} day${days===1?'':'s'} to go`;
       chip.style.display = 'block';
     } else {
       cur = Math.min(Math.max(ti, 0), TOTAL - 1);
