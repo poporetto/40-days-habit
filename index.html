@@ -250,29 +250,32 @@
     .save-btn:hover  { background: var(--pl); box-shadow: 0 8px 24px rgba(22,114,151,0.4); }
     .save-btn:active { transform: scale(0.97); }
 
-    /* Overview sheet */
+    /* Calendar sheet */
     .ov-sheet {
       max-height: 88dvh;
       display: flex; flex-direction: column;
       padding: 10px 0 0;
     }
     .ov-handle { width: 36px; height: 4px; background: rgba(255,255,255,0.12); border-radius: 2px; margin: 10px auto 16px; }
+    .ov-title  { font-size: 18px; font-weight: 800; letter-spacing: -0.4px; padding: 0 24px 16px; flex-shrink: 0; }
 
-    /* Tabs */
-    .tab-row { display: flex; gap: 6px; padding: 0 24px 18px; flex-shrink: 0; }
-    .ovtab {
-      flex: 1; padding: 10px 8px; border-radius: 12px;
-      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
-      color: var(--tm); font-size: 13px; font-weight: 600; font-family: inherit;
-      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
-      transition: all 0.2s ease;
+    .cal-pane {
+      overflow-y: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+      flex: 1; padding: 0 24px 40px;
     }
-    .ovtab.active { background: var(--p); border-color: var(--p); color: #fff; box-shadow: 0 4px 14px rgba(22,114,151,0.38); }
+    .cal-pane::-webkit-scrollbar { display: none; }
 
-    /* Panes */
-    .pane { display: none; overflow-y: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; flex: 1; padding: 0 24px 40px; }
-    .pane::-webkit-scrollbar { display: none; }
-    .pane.active { display: block; }
+    /* Stats sheet */
+    .stats-sheet {
+      max-height: 88dvh;
+      display: flex; flex-direction: column;
+      padding: 10px 0 0;
+    }
+    .stats-pane {
+      overflow-y: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+      flex: 1; padding: 0 24px 40px;
+    }
+    .stats-pane::-webkit-scrollbar { display: none; }
 
     /* ── CALENDAR PANE ── */
     .cal-month-nav {
@@ -393,30 +396,12 @@
       </div>
     </div>
 
-    <!-- Overview overlay (calendar + stats) -->
-    <div class="overlay" id="ovOverlay">
+    <!-- Calendar overlay -->
+    <div class="overlay" id="calOverlay">
       <div class="sheet ov-sheet">
         <div class="ov-handle"></div>
-
-        <div class="tab-row">
-          <button class="ovtab active" data-tab="cal">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
-              <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-            </svg>
-            Calendar
-          </button>
-          <button class="ovtab" data-tab="stats">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
-              <line x1="6" y1="20" x2="6" y2="14"/>
-            </svg>
-            Weekly Stats
-          </button>
-        </div>
-
-        <!-- Calendar pane -->
-        <div class="pane active" id="pane-cal">
+        <div class="ov-title">Calendar</div>
+        <div class="cal-pane">
           <div class="cal-month-nav">
             <button class="cal-mbtn" id="calPrev">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -437,9 +422,15 @@
           </div>
           <div class="cal-grid" id="calGrid"></div>
         </div>
+      </div>
+    </div>
 
-        <!-- Stats pane -->
-        <div class="pane" id="pane-stats">
+    <!-- Stats overlay -->
+    <div class="overlay" id="statsOverlay">
+      <div class="sheet stats-sheet">
+        <div class="ov-handle"></div>
+        <div class="ov-title">Weekly Stats</div>
+        <div class="stats-pane">
           <div class="stats-section-lbl">Weekly Scores</div>
           <div id="weekRows"></div>
           <div id="totalRow"></div>
@@ -457,10 +448,16 @@
         <span class="hdr-title">40 Days Habit</span>
       </div>
       <div class="hdr-actions">
-        <button class="hdr-btn" id="calBtn" aria-label="Calendar & Stats">
+        <button class="hdr-btn" id="calBtn" aria-label="Calendar">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
             <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+        </button>
+        <button class="hdr-btn" id="statsBtn" aria-label="Weekly Stats">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+            <line x1="6" y1="20" x2="6" y2="14"/>
           </svg>
         </button>
         <button class="hdr-btn" id="settingsBtn" aria-label="Settings">
@@ -826,7 +823,7 @@
         el.addEventListener('click', () => {
           const ci = +el.dataset.ci;
           goTo(ci, ci > cur ? 'next' : 'prev');
-          closeOverview();
+          closeCal();
         });
       });
     }
@@ -880,33 +877,18 @@
         </div>`;
     }
 
-    // ── Overview sheet ─────────────────────────────────────────────────────
-    const ovOverlay = document.getElementById('ovOverlay');
+    // ── Calendar sheet ─────────────────────────────────────────────────────
+    const calOverlay = document.getElementById('calOverlay');
 
-    function openOverview(tab) {
+    function openCal() {
       calMonth = dateOf(cur).getMonth();
-      ovOverlay.classList.add('open');
-      switchTab(tab || 'cal');
+      calOverlay.classList.add('open');
+      renderCal();
     }
+    function closeCal() { calOverlay.classList.remove('open'); }
 
-    function closeOverview() {
-      ovOverlay.classList.remove('open');
-    }
-
-    function switchTab(tab) {
-      document.querySelectorAll('.ovtab').forEach(t =>
-        t.classList.toggle('active', t.dataset.tab === tab));
-      document.querySelectorAll('.pane').forEach(p =>
-        p.classList.toggle('active', p.id === 'pane-' + tab));
-      if (tab === 'cal')   renderCal();
-      if (tab === 'stats') renderStats();
-    }
-
-    document.getElementById('calBtn').addEventListener('click', () => openOverview('cal'));
-    ovOverlay.addEventListener('click', e => { if (e.target === ovOverlay) closeOverview(); });
-
-    document.querySelectorAll('.ovtab').forEach(t =>
-      t.addEventListener('click', () => switchTab(t.dataset.tab)));
+    document.getElementById('calBtn').addEventListener('click', openCal);
+    calOverlay.addEventListener('click', e => { if (e.target === calOverlay) closeCal(); });
 
     document.getElementById('calPrev').addEventListener('click', () => {
       if (calMonth > 4) { calMonth--; renderCal(); }
@@ -914,6 +896,18 @@
     document.getElementById('calNext').addEventListener('click', () => {
       if (calMonth < 5) { calMonth++; renderCal(); }
     });
+
+    // ── Stats sheet ────────────────────────────────────────────────────────
+    const statsOverlay = document.getElementById('statsOverlay');
+
+    function openStats() {
+      statsOverlay.classList.add('open');
+      renderStats();
+    }
+    function closeStats() { statsOverlay.classList.remove('open'); }
+
+    document.getElementById('statsBtn').addEventListener('click', openStats);
+    statsOverlay.addEventListener('click', e => { if (e.target === statsOverlay) closeStats(); });
 
     // ── Settings ───────────────────────────────────────────────────────────
     const settingsOverlay = document.getElementById('settingsOverlay');
