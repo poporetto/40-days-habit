@@ -378,17 +378,127 @@
     }
     .slide-in-right { animation: slideIn 0.24s ease forwards; --from-pos: translateX(50px); }
     .slide-in-left  { animation: slideIn 0.24s ease forwards; --from-pos: translateX(-50px); }
+
+    /* ── GREETING ── */
+    .hdr-greeting {
+      font-size: 12px; font-weight: 500;
+      color: var(--tm); margin-top: 3px;
+      min-height: 16px;
+    }
+
+    /* ── WELCOME SCREEN ── */
+    .welcome {
+      position: fixed; inset: 0; z-index: 400;
+      display: flex; align-items: center; justify-content: center;
+      padding: 32px 28px;
+      background: var(--bg);
+      background-image:
+        radial-gradient(ellipse 70% 50% at 50% 20%, rgba(22,114,151,0.22) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 80% 85%, rgba(22,114,151,0.12) 0%, transparent 60%);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .welcome.out {
+      opacity: 0; transform: scale(0.96); pointer-events: none;
+    }
+    .welcome-inner {
+      width: 100%; max-width: 380px;
+      display: flex; flex-direction: column; align-items: center;
+      text-align: center;
+    }
+    .welcome-flame {
+      font-size: 64px; margin-bottom: 20px;
+      animation: flamePulse 2s ease-in-out infinite;
+    }
+    @keyframes flamePulse {
+      0%,100% { transform: scale(1) rotate(-2deg); }
+      50%      { transform: scale(1.08) rotate(2deg); }
+    }
+    .welcome-eyebrow {
+      font-size: 10px; font-weight: 700; letter-spacing: 3px;
+      text-transform: uppercase; color: var(--p); margin-bottom: 8px;
+    }
+    .welcome-title {
+      font-size: 30px; font-weight: 900; letter-spacing: -1px;
+      line-height: 1.1; margin-bottom: 10px;
+    }
+    .welcome-sub {
+      font-size: 14px; color: var(--tm); line-height: 1.6; margin-bottom: 36px;
+    }
+    .welcome-form { width: 100%; display: flex; flex-direction: column; gap: 14px; }
+    .welcome-field { display: flex; flex-direction: column; gap: 7px; text-align: left; }
+    .welcome-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--tm);
+    }
+    .welcome-input {
+      width: 100%; padding: 15px 16px;
+      background: rgba(255,255,255,0.06); border: 1.5px solid rgba(255,255,255,0.1);
+      border-radius: 14px; color: var(--t); font-size: 16px; font-family: inherit;
+      outline: none; transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .welcome-input::placeholder { color: var(--td); }
+    .welcome-input:focus { border-color: var(--p); box-shadow: 0 0 0 3px rgba(22,114,151,0.22); }
+    .welcome-input.shake {
+      animation: inputShake 0.35s ease;
+      border-color: #e8476a !important;
+    }
+    @keyframes inputShake {
+      0%,100% { transform: translateX(0); }
+      25%      { transform: translateX(-6px); }
+      75%      { transform: translateX(6px); }
+    }
+    .welcome-btn {
+      width: 100%; padding: 17px; margin-top: 8px;
+      background: var(--p); color: #fff; border: none;
+      border-radius: 16px; font-size: 16px; font-weight: 700;
+      font-family: inherit; cursor: pointer; letter-spacing: 0.3px;
+      transition: all 0.2s ease;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .welcome-btn:hover  { background: var(--pl); box-shadow: 0 8px 24px rgba(22,114,151,0.45); }
+    .welcome-btn:active { transform: scale(0.97); }
   </style>
 </head>
 <body>
   <div class="app" id="app">
+
+    <!-- Welcome screen -->
+    <div class="welcome" id="welcome">
+      <div class="welcome-inner">
+        <div class="welcome-flame">🔥</div>
+        <div class="welcome-eyebrow">SNAC</div>
+        <h1 class="welcome-title">40 Days Habit Challenge</h1>
+        <p class="welcome-sub">Build five life-changing habits over 40 days.<br>Starting <strong style="color:var(--t)">May 7, 2026</strong>.</p>
+        <div class="welcome-form">
+          <div class="welcome-field">
+            <label class="welcome-label">Your Name</label>
+            <input class="welcome-input" id="wName" type="text"
+              placeholder="e.g. John" maxlength="30" autocomplete="given-name">
+          </div>
+          <div class="welcome-field">
+            <label class="welcome-label">Your 5th Custom Habit</label>
+            <input class="welcome-input" id="wHabit" type="text"
+              placeholder="e.g. Journaling, Meditation…" maxlength="32" autocomplete="off">
+          </div>
+          <button class="welcome-btn" id="welcomeBtn">
+            Let's Begin
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
 
     <!-- Settings overlay -->
     <div class="overlay" id="settingsOverlay">
       <div class="sheet">
         <div class="sheet-handle"></div>
         <h2 class="sheet-title">Settings</h2>
-        <p class="sheet-sub">Give your 5th habit a name that matches your personal goals.</p>
+        <p class="sheet-sub">Update your name or personalize your 5th habit.</p>
+        <div class="field-label">Your Name</div>
+        <input class="field-input" id="nameInput" type="text"
+          placeholder="e.g. John" maxlength="30" autocomplete="given-name">
         <div class="field-label">Custom Habit Name</div>
         <input class="field-input" id="cInput" type="text"
           placeholder="e.g. Journaling, Meditation…" maxlength="32" autocomplete="off">
@@ -444,8 +554,9 @@
     <!-- Header -->
     <header class="hdr">
       <div class="hdr-brand">
-        <span class="hdr-eyebrow">SNAC </span>
+        <span class="hdr-eyebrow">SNAC</span>
         <span class="hdr-title">40 Days Habit</span>
+        <span class="hdr-greeting" id="greeting"></span>
       </div>
       <div class="hdr-actions">
         <button class="hdr-btn" id="calBtn" aria-label="Calendar">
@@ -537,10 +648,47 @@
       { n:6, s:35, e:39, dates:'Jun 11–15' },
     ];
 
+    // ── Greetings ──────────────────────────────────────────────────────────
+    const GREETINGS = [
+      ['Rise and shine',                '🌅'],
+      ['Ready to crush it',             '💪'],
+      ['Good to see you',               '👋'],
+      ['Let\'s make today count',       '✨'],
+      ['You\'ve got this',              '🔥'],
+      ['Keep the momentum going',       '⚡'],
+      ['Another step forward',          '🚀'],
+      ['Champions show up every day',   '🏆'],
+      ['Faith over fear',               '🙏'],
+      ['Small steps, big results',      '🌱'],
+      ['Discipline creates freedom',    '🗝️'],
+      ['Progress, not perfection',      '🎯'],
+      ['Today is your day',             '☀️'],
+      ['Consistency is your superpower','💫'],
+      ['New day, new strength',         '🌤️'],
+      ['Walk the talk',                 '👟'],
+      ['Onwards and upwards',           '📈'],
+      ['Do it for future you',          '🌟'],
+      ['Every day is a gift',           '🎁'],
+      ['Grace and grind',               '⚙️'],
+      ['Show up. Always.',              '💎'],
+      ['One rep at a time',             '🏋️'],
+      ['Be the change you seek',        '🌊'],
+      ['No shortcuts to growth',        '🌿'],
+      ['Winning starts within',         '🧠'],
+    ];
+
+    function getDailyGreeting(name) {
+      const d = new Date();
+      const seed = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+      const [text, emoji] = GREETINGS[seed % GREETINGS.length];
+      return `${text}, ${name}! ${emoji}`;
+    }
+
     // ── State ──────────────────────────────────────────────────────────────
     let cur        = 0;
     let data       = {};
     let customName = 'My Custom Habit';
+    let userName   = '';
     let busy       = false;
     let calMonth   = 4; // 4=May, 5=Jun
 
@@ -551,12 +699,19 @@
         if (d) data = JSON.parse(d);
         const n = localStorage.getItem('40d_custom');
         if (n) customName = n;
+        const u = localStorage.getItem('40d_name');
+        if (u) userName = u;
       } catch (_) {}
       HABITS[4].label = customName;
     }
 
     function persist() {
       localStorage.setItem('40d_data', JSON.stringify(data));
+    }
+
+    function updateGreeting() {
+      const el = document.getElementById('greeting');
+      if (el) el.textContent = userName ? getDailyGreeting(userName) : '';
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────
@@ -909,25 +1064,87 @@
     document.getElementById('statsBtn').addEventListener('click', openStats);
     statsOverlay.addEventListener('click', e => { if (e.target === statsOverlay) closeStats(); });
 
+    // ── Welcome screen ─────────────────────────────────────────────────────
+    function showWelcome() {
+      const el = document.getElementById('welcome');
+      el.style.display = 'flex';
+      setTimeout(() => document.getElementById('wName').focus(), 300);
+    }
+
+    function dismissWelcome() {
+      const el = document.getElementById('welcome');
+      el.classList.add('out');
+      setTimeout(() => { el.style.display = 'none'; }, 500);
+    }
+
+    document.getElementById('welcomeBtn').addEventListener('click', () => {
+      const nameVal  = document.getElementById('wName').value.trim();
+      const habitVal = document.getElementById('wHabit').value.trim();
+
+      if (!nameVal) {
+        const inp = document.getElementById('wName');
+        inp.classList.add('shake');
+        inp.addEventListener('animationend', () => inp.classList.remove('shake'), { once: true });
+        inp.focus();
+        return;
+      }
+
+      userName = nameVal;
+      localStorage.setItem('40d_name', userName);
+
+      if (habitVal) {
+        customName = habitVal;
+        HABITS[4].label = customName;
+        localStorage.setItem('40d_custom', customName);
+      }
+
+      updateGreeting();
+      renderDay(cur, null); // refresh card with updated custom habit label
+      dismissWelcome();
+    });
+
+    // Allow Enter key on last field to submit
+    document.getElementById('wHabit').addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('welcomeBtn').click();
+    });
+    document.getElementById('wName').addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('wHabit').focus();
+    });
+
     // ── Settings ───────────────────────────────────────────────────────────
     const settingsOverlay = document.getElementById('settingsOverlay');
-    const cInput = document.getElementById('cInput');
+    const cInput          = document.getElementById('cInput');
+    const nameInput       = document.getElementById('nameInput');
 
     document.getElementById('settingsBtn').addEventListener('click', () => {
-      cInput.value = customName;
+      nameInput.value = userName;
+      cInput.value    = customName;
       settingsOverlay.classList.add('open');
-      setTimeout(() => cInput.focus(), 420);
+      setTimeout(() => nameInput.focus(), 420);
     });
-    settingsOverlay.addEventListener('click', e => { if (e.target === settingsOverlay) settingsOverlay.classList.remove('open'); });
+    settingsOverlay.addEventListener('click', e => {
+      if (e.target === settingsOverlay) settingsOverlay.classList.remove('open');
+    });
     document.getElementById('saveBtn').addEventListener('click', () => {
-      const val = cInput.value.trim();
-      if (!val) { cInput.focus(); return; }
-      customName = val; HABITS[4].label = val;
-      localStorage.setItem('40d_custom', val);
+      const nameVal  = nameInput.value.trim();
+      const habitVal = cInput.value.trim();
+      if (!nameVal) { nameInput.focus(); return; }
+
+      userName = nameVal;
+      localStorage.setItem('40d_name', userName);
+
+      if (habitVal) {
+        customName = habitVal;
+        HABITS[4].label = customName;
+        localStorage.setItem('40d_custom', customName);
+      }
+
+      updateGreeting();
       settingsOverlay.classList.remove('open');
       renderDay(cur, null);
     });
-    cInput.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('saveBtn').click(); });
+    cInput.addEventListener('keydown',    e => { if (e.key === 'Enter') document.getElementById('saveBtn').click(); });
+    nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') cInput.focus(); });
 
     // ── Nav buttons ────────────────────────────────────────────────────────
     document.getElementById('prevBtn').addEventListener('click', () => goTo(cur - 1, 'prev'));
@@ -957,7 +1174,6 @@
     const ti = todayIdx();
 
     if (ti < 0) {
-      // Pre-challenge: show Day 1 with countdown chip, keep nav visible
       cur = 0;
       const chip = document.getElementById('preChip');
       const days = -ti;
@@ -968,6 +1184,13 @@
     }
 
     renderDay(cur, null);
+    updateGreeting();
+
+    if (!userName) {
+      showWelcome();
+    } else {
+      document.getElementById('welcome').style.display = 'none';
+    }
   </script>
 </body>
 </html>
