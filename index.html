@@ -690,7 +690,8 @@
     let customName = 'My Custom Habit';
     let userName   = '';
     let busy       = false;
-    let calMonth   = 4; // 4=May, 5=Jun
+    let calMonth   = 4; // 0-based month
+    let calYear    = 2026;
 
     // ── Storage ────────────────────────────────────────────────────────────
     function load() {
@@ -732,6 +733,13 @@
       const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
       const diff = Math.round((d - new Date(2026, 4, 4)) / 86400000);
       return diff >= 0 && diff < TOTAL ? diff : -1;
+    }
+
+    // Returns day index from START for any date >= START, or -1 if before START
+    function dayIdxOfDate(date) {
+      const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const diff = Math.round((d - new Date(2026, 4, 4)) / 86400000);
+      return diff >= 0 ? diff : -1;
     }
 
     function dayData(idx)   { return data[idx] || {}; }
@@ -871,21 +879,30 @@
 
     // ── Progress bar ───────────────────────────────────────────────────────
     function syncProgress() {
-      const ti  = todayIdx();
-      const ref = Math.min(Math.max(ti, 0), TOTAL - 1);
-      const pct = ti < 0 ? 0 : Math.round(((ref + 1) / TOTAL) * 100);
-      document.getElementById('progLabel').textContent = `Day ${cur + 1} of ${TOTAL}`;
-      document.getElementById('progPct').textContent   = `${pct}%`;
-      document.getElementById('progFill').style.width  = pct + '%';
+      const ti = todayIdx();
+      if (ti < 0) {
+        document.getElementById('progLabel').textContent = `Day 1 of 40`;
+        document.getElementById('progPct').textContent   = `0%`;
+        document.getElementById('progFill').style.width  = `0%`;
+        return;
+      }
+      const challengePct = Math.min(Math.round(((Math.min(ti, TOTAL - 1) + 1) / TOTAL) * 100), 100);
+      const label = cur < TOTAL
+        ? `Day ${cur + 1} of 40`
+        : `Day ${cur + 1} · Post-Challenge`;
+      document.getElementById('progLabel').textContent = label;
+      document.getElementById('progPct').textContent   = `${challengePct}%`;
+      document.getElementById('progFill').style.width  = challengePct + '%';
     }
 
     // ── Dots ───────────────────────────────────────────────────────────────
     function syncDots() {
       const el = document.getElementById('dots');
       if (!el) return;
-      const max = 7;
+      const max    = 7;
+      const maxDay = Math.max(todayIdx(), 0);
       let start = Math.max(0, cur - 3);
-      let end   = Math.min(TOTAL - 1, start + max - 1);
+      let end   = Math.min(maxDay, start + max - 1);
       start     = Math.max(0, end - max + 1);
       el.innerHTML = Array.from({ length: end - start + 1 }, (_, i) => {
         const idx = start + i;
@@ -897,11 +914,11 @@
     // ── Nav buttons ────────────────────────────────────────────────────────
     function syncNavBtns() {
       document.getElementById('prevBtn').disabled = cur === 0;
-      document.getElementById('nextBtn').disabled = cur === TOTAL - 1;
+      document.getElementById('nextBtn').disabled = cur >= todayIdx();
     }
 
     function goTo(idx, dir) {
-      if (idx < 0 || idx >= TOTAL || busy) return;
+      if (idx < 0 || idx > todayIdx() || busy) return;
       cur = idx;
       renderDay(idx, dir);
     }
@@ -926,49 +943,54 @@
 
     // ── Calendar rendering ─────────────────────────────────────────────────
     function renderCal() {
-      const year       = 2026;
-      const firstDay   = new Date(year, calMonth, 1);
-      const daysInMon  = new Date(year, calMonth + 1, 0).getDate();
-      const startDow   = (firstDay.getDay() + 6) % 7; // Mon=0 … Sun=6
+      const year      = calYear;
+      const firstDay  = new Date(year, calMonth, 1);
+      const daysInMon = new Date(year, calMonth + 1, 0).getDate();
+      const startDow  = (firstDay.getDay() + 6) % 7; // Mon=0 … Sun=6
 
-      const td = new Date();
+      const td       = new Date();
       const todayMid = new Date(td.getFullYear(), td.getMonth(), td.getDate());
+      const ti       = todayIdx();
 
-      document.getElementById('calMonthTitle').textContent = `${MONTH_FULL[calMonth]} 2026`;
-      document.getElementById('calPrev').disabled = calMonth <= 4;
-      document.getElementById('calNext').disabled = calMonth >= 5;
+      const isMinMonth = calYear === 2026 && calMonth <= 4;
+      const isMaxMonth = (calYear > td.getFullYear()) ||
+        (calYear === td.getFullYear() && calMonth >= td.getMonth());
+
+      document.getElementById('calMonthTitle').textContent = `${MONTH_FULL[calMonth]} ${year}`;
+      document.getElementById('calPrev').disabled = isMinMonth;
+      document.getElementById('calNext').disabled = isMaxMonth;
 
       const cells = [];
-      for (let i = 0; i < startDow; i++)         cells.push(null);
-      for (let d = 1; d <= daysInMon; d++)        cells.push(new Date(year, calMonth, d));
-      while (cells.length % 7 !== 0)              cells.push(null);
+      for (let i = 0; i < startDow; i++)   cells.push(null);
+      for (let d = 1; d <= daysInMon; d++) cells.push(new Date(year, calMonth, d));
+      while (cells.length % 7 !== 0)       cells.push(null);
 
       const html = cells.map(date => {
         if (!date) return '<div class="cal-cell cal-empty"></div>';
 
-        const ci         = cidxOfDate(date);
-        const isChallenge = ci >= 0;
-        const isToday    = date.getTime() === todayMid.getTime();
-        const isCur      = ci === cur;
-        const done       = isChallenge ? doneCount(ci) : 0;
-        const allDone    = isChallenge && done === HABITS.length;
+        const di        = dayIdxOfDate(date);
+        const isTracked = di >= 0 && di <= ti; // on or after start AND not future
+        const isToday   = date.getTime() === todayMid.getTime();
+        const isCur     = di === cur && di >= 0;
+        const done      = isTracked ? doneCount(di) : 0;
+        const allDone   = isTracked && done === HABITS.length;
 
         let cls = 'cal-cell';
-        if (isChallenge) cls += ' cc';
-        if (isToday)     cls += ' ct';
-        if (isCur)       cls += ' cv';
-        if (allDone)     cls += ' ca';
+        if (isTracked) cls += ' cc';
+        if (isToday)   cls += ' ct';
+        if (isCur)     cls += ' cv';
+        if (allDone)   cls += ' ca';
 
-        const segs = isChallenge
-          ? HABITS.map((h, i) => {
-              const filled = (dayData(ci)[h.id]) ? ' cs' : '';
+        const segs = isTracked
+          ? HABITS.map(h => {
+              const filled = (dayData(di)[h.id]) ? ' cs' : '';
               return `<div class="csg${filled}"></div>`;
             }).join('')
           : '';
 
-        return `<div class="${cls}"${isChallenge ? ` data-ci="${ci}"` : ''}>
+        return `<div class="${cls}"${di >= 0 ? ` data-ci="${di}"` : ''}>
           <span class="cdn">${date.getDate()}</span>
-          ${isChallenge ? `<div class="cbar">${segs}</div>` : ''}
+          ${isTracked ? `<div class="cbar">${segs}</div>` : ''}
         </div>`;
       }).join('');
 
@@ -984,16 +1006,39 @@
     }
 
     // ── Stats rendering ────────────────────────────────────────────────────
+    function buildAllWeeks() {
+      const ti    = todayIdx();
+      const weeks = WEEKS.map(w => ({ ...w }));
+      if (ti >= TOTAL) {
+        let wNum = WEEKS.length + 1;
+        let s    = TOTAL;
+        while (s <= ti) {
+          const e  = s + 6;
+          const sd = dateOf(s);
+          const ed = dateOf(e);
+          const datesStr = `${MONTHS[sd.getMonth()]} ${sd.getDate()}–${MONTHS[ed.getMonth()]} ${ed.getDate()}`;
+          weeks.push({ n: wNum, s, e, dates: datesStr, extended: true });
+          wNum++;
+          s += 7;
+        }
+      }
+      return weeks;
+    }
+
     function renderStats() {
       const ti = todayIdx();
-      let totalDone = 0;
 
-      const weeksHTML = WEEKS.map(w => {
+      // 40-day total counts only days 0-39
+      let totalDone = 0;
+      for (let i = 0; i < TOTAL; i++) totalDone += doneCount(i);
+
+      const allWeeks  = buildAllWeeks();
+      const weeksHTML = allWeeks.map(w => {
+        if (w.s > ti) return ''; // skip fully future extended weeks
         const days = w.e - w.s + 1;
         const max  = days * HABITS.length;
         let done   = 0;
         for (let i = w.s; i <= w.e; i++) done += doneCount(i);
-        totalDone += done;
         const pct = max > 0 ? Math.round(done / max * 100) : 0;
 
         let status, sCls;
@@ -1001,10 +1046,14 @@
         else if (ti > w.e)  { status = 'Complete';    sCls = 'sco'; }
         else                { status = 'In Progress'; sCls = 'sip'; }
 
+        const extTag = w.extended
+          ? ` <span style="font-size:9px;opacity:0.55;font-weight:400">(Post-Challenge)</span>`
+          : '';
+
         return `<div class="wrow">
           <div class="wrow-head">
             <div>
-              <div class="wn">Week ${w.n}</div>
+              <div class="wn">Week ${w.n}${extTag}</div>
               <div class="wd">${w.dates}</div>
             </div>
             <span class="wbadge ${sCls}">${status}</span>
@@ -1036,7 +1085,9 @@
     const calOverlay = document.getElementById('calOverlay');
 
     function openCal() {
-      calMonth = dateOf(cur).getMonth();
+      const d = dateOf(cur);
+      calMonth = d.getMonth();
+      calYear  = d.getFullYear();
       calOverlay.classList.add('open');
       renderCal();
     }
@@ -1046,10 +1097,12 @@
     calOverlay.addEventListener('click', e => { if (e.target === calOverlay) closeCal(); });
 
     document.getElementById('calPrev').addEventListener('click', () => {
-      if (calMonth > 4) { calMonth--; renderCal(); }
+      if (calMonth > 0) { calMonth--; } else { calMonth = 11; calYear--; }
+      renderCal();
     });
     document.getElementById('calNext').addEventListener('click', () => {
-      if (calMonth < 5) { calMonth++; renderCal(); }
+      if (calMonth < 11) { calMonth++; } else { calMonth = 0; calYear++; }
+      renderCal();
     });
 
     // ── Stats sheet ────────────────────────────────────────────────────────
@@ -1180,7 +1233,7 @@
       chip.textContent = `🔥 Challenge starts May 4, 2026 · ${days} day${days===1?'':'s'} to go`;
       chip.style.display = 'block';
     } else {
-      cur = Math.min(Math.max(ti, 0), TOTAL - 1);
+      cur = Math.max(ti, 0);
     }
 
     renderDay(cur, null);
